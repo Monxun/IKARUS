@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.9.0 # Specify a stable version
+    container_name: qdrant_db
+    ports:
+      - "6333:6333" # REST API
+      - "6334:6334" # gRPC API
+    volumes:
+      - qdrant_storage:/qdrant/storage # Persist Qdrant data
+    environment:
+      # Qdrant specific environment variables can be set here if needed
+      # For example, for enabling API key (though not default for local):
+      # QDRANT__SERVICE__API_KEY: "your-qdrant-api-key"
+      QDRANT__LOG_LEVEL: "INFO" # Set Qdrant log level
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  crawl4ai-mcp-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crawl4ai_mcp_service
+    env_file:
+      - .env # Load environment variables from .env file
+    ports:
+      # The PORT variable from .env will be used by the app inside the container.
+      # This maps a host port (e.g., 8051) to that container port.
+      # Ensure this matches the PORT in your .env file if you change it from 8051.
+      - "${MCP_SERVICE_PORT_HOST}:${PORT}" 
+    depends_on:
+      qdrant:
+        condition: service_healthy # Wait for Qdrant to be healthy
+    restart: unless-stopped
+    # volumes: # Optional: if you need to mount any local directories into the app
+      # - ./some_local_data:/app/data 
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  qdrant_storage: # Define the named volume for Qdrant
+
+# Optional: Define a custom network if services need to communicate
+# on a network different from the default bridge network.
+# networks:
+#   app_network:
+#     driver: bridge

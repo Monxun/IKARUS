@@ -1,0 +1,11 @@
+fastmcp>=0.2.0 # Or your specific version
+crawl4ai>=0.6.0 # Or your specific version
+litellm>=1.35.0 # Check for the latest stable version
+qdrant-client>=1.9.0 # Check for the latest stable version
+python-dotenv>=1.0.0
+requests>=2.28.0
+# ollama # Not strictly needed if litellm connects to a remote Ollama API server
+# uvicorn # Only if FastMCP or your app directly uses it; FastMCP usually handles its own server.
+playwright # crawl4ai lists it as a dependency, so it should be pulled in.
+beautifulsoup4 # Often useful with web crawling, crawl4ai might use it or similar.
+lxml # For more robust XML (sitemap) parsing, if ElementTree is insufficient.
